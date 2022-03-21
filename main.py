@@ -44,9 +44,9 @@ while RUN:
 					F = calc_fall_power(obj1, obj2, G, d)
 					#print(F)
 					pygame.draw.line(screen, (255,255,255), obj1.body.position, obj2.body.position, 1)
-					x = (obj2.body.position[0] - obj1.body.position[0]) / obj1.mass / d
-					y = (obj2.body.position[1] - obj1.body.position[1]) / obj1.mass / d
-					obj1.body.apply_impulse_at_world_point([x,y], [0,0])
+					x = (obj1.body.position[0] - obj2.body.position[0]) * F
+					y = (obj1.body.position[1] - obj2.body.position[1]) * F
+					obj2.body.apply_impulse_at_world_point([x/100,y/100], [0,0])
 
 		for i in pygame.event.get():
 			if i.type == pygame.QUIT:
@@ -63,9 +63,9 @@ while RUN:
 					selected_object = dedicated_object
 					selected_object.shape.color = (100,100,100,0)
 				if i.button == 6:
-					create_obj(10, 60, i.pos)
+					create_obj(1000, 60, i.pos)
 				if i.button == 7:
-					create_obj(1, 10, i.pos)
+					create_obj(10, 10, i.pos)
 				if i.button == 4:
 					print("Up")
 				if i.button == 5:
