@@ -14,7 +14,7 @@ class Ball:
 		self.shape.friction = 0.5
 
 	def move(self, x, y):
-		self.body.velocity = Vec2d(x, y)
+		self.body.apply_impulse_at_world_point([x,y], [0,0])
 
 	def info(self):
 		print(f"Mass: {self.mass}")
