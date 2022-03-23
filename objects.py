@@ -1,6 +1,13 @@
 import pymunk.pygame_util
+from tkinter import *
+from tkinter import messagebox
 from simulation_func import calc_moment
 from pymunk.vec2d import Vec2d
+
+class Menu(Tk):
+	def __init__(self):
+		pass
+
 
 class Ball:
 	def __init__(self, ball_mass, ball_radius, pos):
@@ -17,6 +24,7 @@ class Ball:
 		self.body.apply_impulse_at_world_point([x,y], [0,0])
 
 	def info(self):
-		print(f"Mass: {self.mass}")
-		print(f"Radius: {self.radius}")
-		print(f"Position  x:{self.body.position[0]}  y:{self.body.position[1]}\n")
+		messagebox.showinfo("Info", f"Mass: {self.mass}\nRadius: {self.radius}\nPosition: {self.body.position}")
+		#print(f"Mass: {self.mass}")
+		#print(f"Radius: {self.radius}")
+		#print(f"Position  x:{self.body.position[0]}  y:{self.body.position[1]}\n")
