@@ -20,6 +20,10 @@ def start_simulation(scr_width, scr_height):
 	space.gravity = 0, 0
 	G = 6.67
 
+	#Settings menu
+	window = Tk()
+	window.withdraw()
+
 	#Objects
 	objects = []
 	dedicated_object = None
@@ -30,6 +34,7 @@ def start_simulation(scr_width, scr_height):
 		space.add(obj.body, obj.shape)
 
 	FPS=60
+	PLAY=False
 	RUN=True
 	while RUN:
 		try:
@@ -49,7 +54,10 @@ def start_simulation(scr_width, scr_height):
 						pygame.draw.line(screen, (255,255,255), obj1.body.position, obj2.body.position, 1)
 						x = (obj1.body.position[0] - obj2.body.position[0]) * F
 						y = (obj1.body.position[1] - obj2.body.position[1]) * F
-						obj2.body.apply_impulse_at_world_point([x/100,y/100], [0,0])
+						if PLAY:
+							obj2.move(x/100, y/100)
+						else:
+							obj2.stop()
 
 			for i in pygame.event.get():
 				if i.type == pygame.QUIT:
@@ -66,7 +74,7 @@ def start_simulation(scr_width, scr_height):
 						selected_object = dedicated_object
 						selected_object.shape.color = (100,100,100,0)
 					if i.button == 6:
-						create_obj(1000, 60, i.pos)
+						create_obj(10000, 60, i.pos)
 					if i.button == 7:
 						create_obj(10, 10, i.pos)
 					if i.button == 4:
@@ -85,6 +93,9 @@ def start_simulation(scr_width, scr_height):
 						selected_object.move(0,-1000)
 					if i.key == pygame.K_DOWN:
 						selected_object.move(0, 1000)
+					if i.key == pygame.K_SPACE:
+						if PLAY == True: PLAY = False
+						else: PLAY = True
 
 			space.step(1/FPS)
 			space.debug_draw(draw_options)

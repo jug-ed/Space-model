@@ -23,6 +23,9 @@ class Ball:
 	def move(self, x, y):
 		self.body.apply_impulse_at_world_point([x,y], [0,0])
 
+	def stop(self):
+		self.body.velocity = 0,0
+
 	def info(self):
 		messagebox.showinfo("Info", f"Mass: {self.mass}\nRadius: {self.radius}\nPosition: {self.body.position}")
 		#print(f"Mass: {self.mass}")
