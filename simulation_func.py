@@ -9,6 +9,6 @@ def calc_distance(obj1, obj2):
 
 def calc_fall_power(obj1, obj2, G, d):
 	try:
-		return G*((obj1.mass*obj2.mass)/d**2)
+		return G*((obj1.mass/obj2.mass)/(d**2))
 	except ZeroDivisionError:
 		return 0

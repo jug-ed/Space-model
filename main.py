@@ -44,18 +44,18 @@ def start_simulation(scr_width, scr_height):
 				if dedicated_object != obj1 and obj1.radius >= calc_distance(obj1.body.position, pygame.mouse.get_pos()): dedicated_object = obj1
 				if obj1 != selected_object:
 					obj1.shape.color = (255,255,255,0)
-				x = y = 0
 				for obj2 in objects:
 					if obj2 is not obj1:
 						d = calc_distance(obj1.body.position, obj2.body.position)
 						#print(d)
 						F = calc_fall_power(obj1, obj2, G, d)
 						#print(F)
-						pygame.draw.line(screen, (255,255,255), obj1.body.position, obj2.body.position, 1)
+						if(d < 750):
+							pygame.draw.line(screen, (255,255,255), obj1.body.position, obj2.body.position, 1)
 						x = (obj1.body.position[0] - obj2.body.position[0]) * F
 						y = (obj1.body.position[1] - obj2.body.position[1]) * F
 						if PLAY:
-							obj2.move(x/100, y/100)
+							obj2.move(x/1, y/1)
 						else:
 							obj2.stop()
 
