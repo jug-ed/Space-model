@@ -1,114 +1,89 @@
-import pygame, pymunk.pygame_util, math, threading
-from math import sqrt
-from tkinter import *
-from tkinter import messagebox
-from objects import Ball, Menu
-from simulation_func import calc_distance, calc_fall_power
+from objects import SpaceBody
+from interface import ControlPanel
+from simulation import apply_gravity
+import settings
+import pygame
+import pymunk
+import tkinter.messagebox as messagebox
 
-#Start simulation
-def start_simulation(scr_width, scr_height):
-	#Settings window
-	pygame.init()
-	size = (scr_width,scr_height)
-	screen = pygame.display.set_mode(size,pygame.RESIZABLE)
-	clock = pygame.time.Clock()
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), pygame.RESIZABLE)
+    pygame.display.set_caption("Space model - Simulation")
+    clock = pygame.time.Clock()
 
-	#Settings space
-	pymunk.pygame_util.positive_y_is_up = False
-	draw_options = pymunk.pygame_util.DrawOptions(screen)
-	space = pymunk.Space()
-	space.gravity = 0, 0
-	G = 6.67
+    space = pymunk.Space()
+    space.gravity = (0, 0)
 
-	#Settings menu
-	window = Tk()
-	window.withdraw()
+    bodies = []
 
-	#Objects
-	objects = []
-	dedicated_object = None
-	selected_object = None
-	def create_obj(mass, radius, pos):
-		obj = globals()["ball%s"%str(len(objects)+1)] = Ball(mass, radius, pos)
-		objects.append(obj)
-		space.add(obj.body, obj.shape)
+    paused = False
 
-	FPS=60
-	PLAY=False
-	RUN=True
-	while RUN:
-		try:
-			screen.fill((0,0,0))
+    def add_body(x, y, mass=100, radius=15):
+        body = SpaceBody(space, x, y, mass, radius)
+        bodies.append(body)
 
-			for obj1 in objects:
-				if dedicated_object != obj1 and obj1.radius >= calc_distance(obj1.body.position, pygame.mouse.get_pos()): dedicated_object = obj1
-				if obj1 != selected_object:
-					obj1.shape.color = (255,255,255,0)
-				for obj2 in objects:
-					if obj2 is not obj1:
-						d = calc_distance(obj1.body.position, obj2.body.position)
-						#print(d)
-						F = calc_fall_power(obj1, obj2, G, d)
-						#print(F)
-						if(d < 750):
-							pygame.draw.line(screen, (255,255,255), obj1.body.position, obj2.body.position, 1)
-						x = (obj1.body.position[0] - obj2.body.position[0]) * F
-						y = (obj1.body.position[1] - obj2.body.position[1]) * F
-						if PLAY:
-							obj2.move(x/1, y/1)
-						else:
-							obj2.stop()
+    control_panel = ControlPanel(add_body)
 
-			for i in pygame.event.get():
-				if i.type == pygame.QUIT:
-					exit()
+    running = True
+    while running and control_panel.running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                control_panel.running = False
+            elif event.type == pygame.VIDEORESIZE:
+                screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    paused = not paused
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
 
-				if i.type == pygame.MOUSEBUTTONDOWN:
-					if i.button == 1:
-						dedicated_object.info()
-					if i.button == 3:
-						if selected_object != None and selected_object == dedicated_object:
-							objects.remove(selected_object)
-							space.remove(selected_object.body, selected_object.shape)
-							selected_object = dedicated_object = None
-						selected_object = dedicated_object
-						selected_object.shape.color = (100,100,100,0)
-					if i.button == 6:
-						create_obj(10000, 60, i.pos)
-					if i.button == 7:
-						create_obj(10, 10, i.pos)
-					if i.button == 4:
-						print("Up")
-					if i.button == 5:
-						print("Down")
+                if event.button == 1:
+                    for body in bodies:
+                        dx = body.position.x - mouse_x
+                        dy = body.position.y - mouse_y
+                        dist_sq = dx * dx + dy * dy
+                        if dist_sq <= (body.radius) ** 2:
+                            info = (
+                                f"Position: ({body.position.x:.2f}, {body.position.y:.2f})\n"
+                                f"Speed: ({body.velocity.x:.2f}, {body.velocity.y:.2f})\n"
+                                f"Weight: {body.mass:.2f}\n"
+                                f"Radius: {body.radius:.2f}"
+                            )
+                            messagebox.showinfo("Body info", info)
+                            break
+                elif event.button == 3:
+                    for body in bodies:
+                        dx = body.position.x - mouse_x
+                        dy = body.position.y - mouse_y
+                        dist_sq = dx * dx + dy * dy
+                        if dist_sq <= (body.radius) ** 2:
+                            answer = messagebox.askyesno("Delete body", "Delete this body?")
+                            if answer:
+                                space.remove(body.body, body.shape)
+                                bodies.remove(body)
+                            break
 
-				if i.type == pygame.KEYDOWN:
-					if i.key == pygame.K_TAB:
-						pass
-					if i.key == pygame.K_LEFT:
-						selected_object.move(-1000,0)
-					if i.key == pygame.K_RIGHT:
-						selected_object.move(1000,0)
-					if i.key == pygame.K_UP:
-						selected_object.move(0,-1000)
-					if i.key == pygame.K_DOWN:
-						selected_object.move(0, 1000)
-					if i.key == pygame.K_SPACE:
-						if PLAY == True: PLAY = False
-						else: PLAY = True
+        screen.fill(settings.BACKGROUND_COLOR)
 
-			space.step(1/FPS)
-			space.debug_draw(draw_options)
+        if not paused:
+            apply_gravity(bodies, G=control_panel.G)
+            space.step(1 / 60.0)
 
-			pygame.display.flip()
-			clock.tick(FPS)
-		except AttributeError:
-			pass
+        for body in bodies:
+            pos = body.position
+            radius = body.radius
+            pygame.draw.circle(screen, settings.BODY_COLOR, pos, radius)
+            vel_end = (pos[0] + body.velocity.x, pos[1] + body.velocity.y)
+            pygame.draw.line(screen, settings.VELOCITY_COLOR, pos, vel_end, 2)
 
+        pygame.display.flip()
+        clock.tick(60)
+
+        control_panel.update()
+
+    pygame.quit()
 
 if __name__ == "__main__":
-	simulation1 = threading.Thread(
-				target=start_simulation,
-				args=(800,800)
-				)
-	simulation1.start()
+    main()
