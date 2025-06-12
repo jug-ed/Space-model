@@ -40,6 +40,8 @@ class ControlPanel(tk.Tk):
             "- Left click: show info about body\n"
             "- Right click: delete body\n"
             "- Space: start/stop simulation"
+            "- Arrows: move camera"
+            "- +/-: Scale camera"
         )
         ttk.Label(self, text=instr_text, justify='left').pack(padx=10, pady=10)
 
