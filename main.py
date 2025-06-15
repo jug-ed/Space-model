@@ -22,11 +22,26 @@ def main():
 
     paused = False
 
-    def add_body(x, y, mass=100, radius=15):
-        body = SpaceBody(space, x, y, mass, radius)
+    def add_body(x, y, vx, vy, mass=100, radius=15, name=""):
+        if any(b.name == name for b in bodies):
+            messagebox.showerror("Error", f"Body named '{name}' already exists")
+            return
+        body = SpaceBody(space, x, y, vx, vy, mass, radius, name)
         bodies.append(body)
 
-    control_panel = ControlPanel(add_body)
+    def search_body(name):
+        for b in bodies:
+            if b.name.lower() == name.lower():
+                camera.offset_x = -b.position.x + settings.WIDTH / (2 * camera.scale)
+                camera.offset_y = -b.position.y + settings.HEIGHT / (2 * camera.scale)
+                messagebox.showinfo("The body found",
+                                    f"Name: {b.name}\nPosition: ({b.position.x:.2f}, {b.position.y:.2f})\n"
+                                    f"Speed: ({b.velocity.x:.2f}, {b.velocity.y:.2f})\n"
+                                    f"Weight: {b.mass:.2f}\nRadius: {b.radius:.2f}")
+                return True
+        return False
+
+    control_panel = ControlPanel(add_body, search_body)
 
     running = True
     while running and control_panel.running:
@@ -63,6 +78,7 @@ def main():
                         dist_sq = dx * dx + dy * dy
                         if dist_sq <= (body.radius) ** 2:
                             info = (
+                                f"Name: {body.name}\n"
                                 f"Position: ({body.position.x:.2f}, {body.position.y:.2f})\n"
                                 f"Speed: ({body.velocity.x:.2f}, {body.velocity.y:.2f})\n"
                                 f"Weight: {body.mass:.2f}\n"
